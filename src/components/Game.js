@@ -8,6 +8,7 @@ import TeamPanel from "./TeamPanel";
 export default function Game({ room, name }) {
   const [myId, setMyId] = useState(null);
   const [teams, setTeams] = useState({ A: { players: [], leader: null }, B: { players: [], leader: null } });
+  const [myTeam, setMyTeam] = useState(null); // ✅ FIX 1: Manual myTeam tracking
   const [maskedMovie, setMaskedMovie] = useState("");
   const [strikes, setStrikes] = useState(0);
   const [currentTurn, setCurrentTurn] = useState("A");
@@ -18,10 +19,16 @@ export default function Game({ room, name }) {
   const [revealedMovie, setRevealedMovie] = useState("");
 
   useEffect(() => {
-    socket.on("connect", () => setMyId(socket.id));
+    socket.on("connect", () => setMyId(socket.id)); // ✅ FIX 2: Set myId on connect
 
     socket.on("roomState", ({ teams }) => {
       setTeams(teams);
+      updateMyTeam(teams); // ✅ FIX 1.1
+    });
+
+    socket.on("updateTeams", (updatedTeams) => {
+      setTeams(updatedTeams);          // ✅ FIX 2A: show updated names
+      updateMyTeam(updatedTeams);      // ✅ FIX 2A: update my team if changed
     });
 
     socket.on("gameStarted", ({ turn, round, teams }) => {
@@ -31,6 +38,7 @@ export default function Game({ room, name }) {
       setMaskedMovie("");
       setRound(round);
       setTeams(teams);
+      updateMyTeam(teams); // ✅ FIX 1.2
     });
 
     socket.on("movieReady", (masked) => {
@@ -68,6 +76,7 @@ export default function Game({ room, name }) {
     return () => {
       socket.off("connect");
       socket.off("roomState");
+      socket.off("updateTeams"); // ✅ CLEANUP
       socket.off("gameStarted");
       socket.off("movieReady");
       socket.off("correctGuess");
@@ -78,13 +87,14 @@ export default function Game({ room, name }) {
     };
   }, []);
 
-  const getTeam = () => {
-    if (teams?.A?.players?.some(p => p.id === myId)) return "A";
-    if (teams?.B?.players?.some(p => p.id === myId)) return "B";
-    return null;
+  // ✅ FIX 1.3: Track myTeam manually instead of getTeam()
+  const updateMyTeam = (teamsObj) => {
+    if (!myId) return;
+    if (teamsObj.A.players.some(p => p.id === myId)) setMyTeam("A");
+    else if (teamsObj.B.players.some(p => p.id === myId)) setMyTeam("B");
+    else setMyTeam(null);
   };
 
-  const myTeam = getTeam();
   const isLeader = teams[myTeam]?.leader === myId;
   const isGuessingTeam = currentTurn !== myTeam;
 
@@ -103,17 +113,20 @@ export default function Game({ room, name }) {
     socket.emit("nextRound", { roomId: room });
   };
 
+  // ✅ FIX 3: Show loading until myId + myTeam is available
+  if (!myId || !myTeam) {
+    return <p style={{ color: "#fff", padding: "2rem" }}>Loading...</p>;
+  }
+
   return (
     <div style={{ padding: "2rem", background: "#111", color: "#fff", minHeight: "100vh" }}>
       <h2>🎮 Round {round} — Team {currentTurn}'s Turn</h2>
       <p>You are in <strong>Team {myTeam}</strong> {isLeader && "(Leader)"}</p>
       <p>Room Code: <strong>{room}</strong></p>
 
-      {/* ✅ Player Names in TeamPanel */}
       <TeamPanel teams={teams} currentTeam={currentTurn} />
       <Scoreboard teams={teams} />
 
-      {/* Submitting Phase */}
       {gameState === "submitting" && (
         myTeam === currentTurn ? (
           isLeader ? (
@@ -129,7 +142,6 @@ export default function Game({ room, name }) {
         )
       )}
 
-      {/* Guessing Phase */}
       {gameState === "guessing" && (
         isGuessingTeam ? (
           <div>
@@ -152,7 +164,6 @@ export default function Game({ room, name }) {
         )
       )}
 
-      {/* Watching Phase */}
       {gameState === "watching" && (
         <div>
           {revealedMovie ? (
