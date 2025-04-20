@@ -1,74 +1,64 @@
 import React from "react";
+import socket from "../utils/socketClient";
 
-export default function TeamModal({
-  teams,
-  currentPlayerId,
-  currentRoom,
-  onJoinTeam,
-  onStartGame,
-  isLeader,
-}) {
-  const teamA = teams?.A?.players || [];
-  const teamB = teams?.B?.players || [];
+export default function TeamModal({ roomCode, teams, myId, onStart }) {
+  const myTeam = teams.A.players.find(p => p.id === myId)
+    ? "A"
+    : teams.B.players.find(p => p.id === myId)
+    ? "B"
+    : null;
 
-  const canStart = teamA.length > 0 && teamB.length > 0;
+  const joinTeam = (team) => {
+    socket.emit("joinTeam", { roomId: roomCode, team });
+  };
 
-  const playerTeam =
-    teamA.find((p) => p.id === currentPlayerId) ? "A" :
-    teamB.find((p) => p.id === currentPlayerId) ? "B" : null;
+  const isReadyToStart =
+    teams.A.players.length > 0 && teams.B.players.length > 0;
 
   return (
-    <div style={{
-      position: "fixed",
-      top: 0, left: 0,
-      width: "100vw",
-      height: "100vh",
-      background: "rgba(0, 0, 0, 0.85)",
-      color: "#fff",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 1000
-    }}>
-      <h2>🎮 Select Your Team</h2>
-      <p>Room Code: <strong>{currentRoom}</strong></p>
-
-      <div style={{ display: "flex", gap: "2rem", marginTop: "1rem" }}>
-        <div style={{ border: "1px solid #ccc", padding: "1rem" }}>
+    <div style={modalStyle}>
+      <h2>Choose Your Team</h2>
+      <div style={{ display: "flex", justifyContent: "space-around", gap: "2rem" }}>
+        <div>
           <h3>Team A</h3>
-          {teamA.map((p, i) => <div key={i}>{p.name} {p.id === currentPlayerId && "(You)"}</div>)}
-          <button onClick={() => onJoinTeam("A")} disabled={playerTeam === "A"}>
-            {playerTeam === "A" ? "In Team A" : "Join Team A"}
-          </button>
+          {teams.A.players.map((p, i) => (
+            <div key={i}>{p.id === myId ? <b>You</b> : `Player ${i + 1}`}</div>
+          ))}
+          <button onClick={() => joinTeam("A")}>Join Team A</button>
         </div>
-
-        <div style={{ border: "1px solid #ccc", padding: "1rem" }}>
+        <div>
           <h3>Team B</h3>
-          {teamB.map((p, i) => <div key={i}>{p.name} {p.id === currentPlayerId && "(You)"}</div>)}
-          <button onClick={() => onJoinTeam("B")} disabled={playerTeam === "B"}>
-            {playerTeam === "B" ? "In Team B" : "Join Team B"}
-          </button>
+          {teams.B.players.map((p, i) => (
+            <div key={i}>{p.id === myId ? <b>You</b> : `Player ${i + 1}`}</div>
+          ))}
+          <button onClick={() => joinTeam("B")}>Join Team B</button>
         </div>
       </div>
 
-      {isLeader && (
-        <button
-          onClick={onStartGame}
-          disabled={!canStart}
-          style={{
-            marginTop: "2rem",
-            padding: "0.75rem 2rem",
-            fontSize: "1.1rem",
-            background: canStart ? "#28a745" : "#666",
-            border: "none",
-            color: "#fff",
-            cursor: canStart ? "pointer" : "not-allowed"
-          }}
-        >
-          Start Game
-        </button>
-      )}
+      <div style={{ marginTop: "2rem" }}>
+        <p>Room Code: <strong>{roomCode}</strong></p>
+        <p>Current Team: <strong>{myTeam || "None"}</strong></p>
+        {isReadyToStart ? (
+          <button onClick={onStart} style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}>
+            🚀 Start Game
+          </button>
+        ) : (
+          <p style={{ color: "orange" }}>Both teams need at least 1 player to start</p>
+        )}
+      </div>
     </div>
   );
 }
+
+const modalStyle = {
+  position: "fixed",
+  top: "10%",
+  left: "10%",
+  right: "10%",
+  padding: "2rem",
+  background: "#222",
+  borderRadius: "10px",
+  border: "2px solid #555",
+  color: "#fff",
+  zIndex: 1000,
+};

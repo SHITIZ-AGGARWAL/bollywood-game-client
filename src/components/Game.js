@@ -54,11 +54,12 @@ export default function Game({ room, name }) {
     });
 
     socket.on("roundFailed", ({ movie }) => {
-      alert(`Movie was: ${movie}`);
+      alert(`❌ Round failed. The movie was: ${movie}`);
       setGameState("watching");
     });
 
     socket.on("roundStart", (turn) => {
+      setRound((prev) => prev + 1);
       setCurrentTurn(turn);
       setMaskedMovie("");
       setStrikes(0);
@@ -84,11 +85,11 @@ export default function Game({ room, name }) {
 
   const isLeader = () => {
     const team = getTeam();
-    return teams[team].leader === myId;
+    return teams[team]?.leader === myId;
   };
 
   const handleMovieSubmit = () => {
-    const movie = prompt("Enter a movie name").trim();
+    const movie = prompt("🎬 Enter the Bollywood movie name").trim();
     if (movie) {
       socket.emit("submitMovie", { roomId: room, movie });
     }
@@ -109,27 +110,29 @@ export default function Game({ room, name }) {
   const isGuessingTeam = currentTurn !== myTeam;
 
   return (
-    <div style={{ padding: "1rem", background: "#000", color: "#fff", minHeight: "100vh" }}>
-      <h2>🎬 Round {round} — Turn: Team {currentTurn}</h2>
+    <div style={{ padding: "2rem", background: "#111", color: "#fff", minHeight: "100vh" }}>
+      <h2>🎮 Round {round} — Team {currentTurn}'s Turn</h2>
       <p>You are in <strong>Team {myTeam}</strong> {isLeader() && "(Leader)"}</p>
       <p>Room Code: <strong>{room}</strong></p>
 
       <Scoreboard teams={teams} />
 
-      {gameState === "submitting" ? (
+      {gameState === "submitting" && (
         myTeam === currentTurn ? (
           isLeader() ? (
             <div>
-              <h3>🎬 Enter a movie for Team {currentTurn === "A" ? "B" : "A"} to guess:</h3>
+              <h3>🎬 You're the leader. Submit a movie for the other team:</h3>
               <button onClick={handleMovieSubmit}>Submit Movie</button>
             </div>
           ) : (
             <p>Waiting for your leader to submit a movie...</p>
           )
         ) : (
-          <p>Team {currentTurn} is giving a movie... please wait.</p>
+          <p>Team {currentTurn} is submitting a movie... please wait.</p>
         )
-      ) : gameState === "guessing" ? (
+      )}
+
+      {gameState === "guessing" && (
         isGuessingTeam ? (
           <div>
             <BollywoodStrikeBoard strikes={strikes} />
@@ -153,14 +156,14 @@ export default function Game({ room, name }) {
             </div>
           </div>
         )
-      ) : gameState === "watching" ? (
-        isLeader() && (
-          <div>
-            <p>Round over. Click to start next round.</p>
-            <button onClick={handleNextRound}>Next Round</button>
-          </div>
-        )
-      ) : null}
+      )}
+
+      {gameState === "watching" && isLeader() && (
+        <div>
+          <p>✅ Round ended. Ready to continue?</p>
+          <button onClick={handleNextRound}>Start Next Round</button>
+        </div>
+      )}
 
       <hr style={{ margin: "2rem 0", borderColor: "#444" }} />
       <ChatBox room={room} />
