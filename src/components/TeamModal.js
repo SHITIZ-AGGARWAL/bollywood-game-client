@@ -17,14 +17,18 @@ export default function TeamModal({ currentRoom, teams, currentPlayerId, onStart
         <div>
           <h3>Team A</h3>
           {teams.A.players.map((p, i) => (
-            <div key={i}>{p.id === currentPlayerId ? <b>You</b> : `Player ${i + 1}`}</div>
+            <div key={i}>
+              {p.id === currentPlayerId ? <b>{p.name || "You"}</b> : p.name || `Player ${i + 1}`}
+            </div>
           ))}
           <button onClick={() => onJoinTeam("A")}>Join Team A</button>
         </div>
         <div>
           <h3>Team B</h3>
           {teams.B.players.map((p, i) => (
-            <div key={i}>{p.id === currentPlayerId ? <b>You</b> : `Player ${i + 1}`}</div>
+            <div key={i}>
+              {p.id === currentPlayerId ? <b>{p.name || "You"}</b> : p.name || `Player ${i + 1}`}
+            </div>
           ))}
           <button onClick={() => onJoinTeam("B")}>Join Team B</button>
         </div>
