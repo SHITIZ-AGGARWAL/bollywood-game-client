@@ -1,16 +1,11 @@
 import React from "react";
-import socket from "../utils/socketClient";
 
-export default function TeamModal({ roomCode, teams, myId, onStart }) {
-  const myTeam = teams.A.players.find(p => p.id === myId)
+export default function TeamModal({ currentRoom, teams, currentPlayerId, onStartGame, onJoinTeam }) {
+  const myTeam = teams.A.players.find(p => p.id === currentPlayerId)
     ? "A"
-    : teams.B.players.find(p => p.id === myId)
+    : teams.B.players.find(p => p.id === currentPlayerId)
     ? "B"
     : null;
-
-  const joinTeam = (team) => {
-    socket.emit("joinTeam", { roomId: roomCode, team });
-  };
 
   const isReadyToStart =
     teams.A.players.length > 0 && teams.B.players.length > 0;
@@ -22,24 +17,24 @@ export default function TeamModal({ roomCode, teams, myId, onStart }) {
         <div>
           <h3>Team A</h3>
           {teams.A.players.map((p, i) => (
-            <div key={i}>{p.id === myId ? <b>You</b> : `Player ${i + 1}`}</div>
+            <div key={i}>{p.id === currentPlayerId ? <b>You</b> : `Player ${i + 1}`}</div>
           ))}
-          <button onClick={() => joinTeam("A")}>Join Team A</button>
+          <button onClick={() => onJoinTeam("A")}>Join Team A</button>
         </div>
         <div>
           <h3>Team B</h3>
           {teams.B.players.map((p, i) => (
-            <div key={i}>{p.id === myId ? <b>You</b> : `Player ${i + 1}`}</div>
+            <div key={i}>{p.id === currentPlayerId ? <b>You</b> : `Player ${i + 1}`}</div>
           ))}
-          <button onClick={() => joinTeam("B")}>Join Team B</button>
+          <button onClick={() => onJoinTeam("B")}>Join Team B</button>
         </div>
       </div>
 
       <div style={{ marginTop: "2rem" }}>
-        <p>Room Code: <strong>{roomCode}</strong></p>
+        <p>Room Code: <strong>{currentRoom}</strong></p>
         <p>Current Team: <strong>{myTeam || "None"}</strong></p>
         {isReadyToStart ? (
-          <button onClick={onStart} style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}>
+          <button onClick={onStartGame} style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}>
             🚀 Start Game
           </button>
         ) : (
