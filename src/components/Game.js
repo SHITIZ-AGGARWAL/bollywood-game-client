@@ -18,12 +18,21 @@ export default function Game({ room, name }) {
   const [round, setRound] = useState(1);
   const [revealedMovie, setRevealedMovie] = useState("");
 
-  // ✅ FIX: Track my team safely
+  // ✅ FIX: Safely update my team
   const updateMyTeam = (teamsObj) => {
-    if (!myId) return;
-    if (teamsObj.A.players.some(p => p.id === myId)) setMyTeam("A");
-    else if (teamsObj.B.players.some(p => p.id === myId)) setMyTeam("B");
-    else setMyTeam(null);
+    if (!myId) {
+      console.log("⚠️ myId not yet available for updateMyTeam");
+      return;
+    }
+    console.log("🔍 Checking myTeam for ID:", myId, teamsObj);
+
+    if (teamsObj.A.players.some(p => p.id === myId)) {
+      setMyTeam("A");
+    } else if (teamsObj.B.players.some(p => p.id === myId)) {
+      setMyTeam("B");
+    } else {
+      setMyTeam(null);
+    }
   };
 
   useEffect(() => {
@@ -31,12 +40,12 @@ export default function Game({ room, name }) {
 
     socket.on("roomState", ({ teams }) => {
       setTeams(teams);
-      updateMyTeam(teams); // ✅ FIX
+      updateMyTeam(teams);
     });
 
     socket.on("updateTeams", (updatedTeams) => {
       setTeams(updatedTeams);
-      updateMyTeam(updatedTeams); // ✅ FIX
+      updateMyTeam(updatedTeams);
     });
 
     socket.on("gameStarted", ({ turn, round, teams }) => {
@@ -46,7 +55,11 @@ export default function Game({ room, name }) {
       setMaskedMovie("");
       setRound(round);
       setTeams(teams);
-      updateMyTeam(teams); // ✅ FIX
+
+      // ✅ FIX: Delay updateMyTeam to ensure myId is set
+      setTimeout(() => {
+        updateMyTeam(teams);
+      }, 100);
     });
 
     socket.on("movieReady", (masked) => {
@@ -113,7 +126,6 @@ export default function Game({ room, name }) {
     socket.emit("nextRound", { roomId: room });
   };
 
-  // ✅ FIX: Prevent rendering before ready
   if (!myId || !myTeam) {
     return <p style={{ color: "#fff", padding: "2rem" }}>Loading...</p>;
   }
