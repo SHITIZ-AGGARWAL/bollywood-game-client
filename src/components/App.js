@@ -8,7 +8,7 @@ export default function App() {
   const [joined, setJoined] = useState(false);
   const [name, setName] = useState("");
   const [showJoinPopup, setShowJoinPopup] = useState(false);
-  const [teams, setTeams] = useState({ A: { players: [] }, B: { players: [] } });
+  const [teams, setTeams] = useState({ A: { players: [], leader: null }, B: { players: [], leader: null } });
   const [gameStarted, setGameStarted] = useState(false);
   const [myId, setMyId] = useState(null);
   const [isLeader, setIsLeader] = useState(false);
@@ -26,30 +26,33 @@ export default function App() {
       console.log("Player joined:", playerId);
     });
 
-    socket.on("updateTeams", (updatedTeams) => {
-      setTeams(updatedTeams);
+    socket.on("roomState", ({ teams }) => {
+      setTeams(teams);
+
       const myTeamPlayer =
-        updatedTeams.A.players.find((p) => p.id === socket.id) ||
-        updatedTeams.B.players.find((p) => p.id === socket.id);
+        teams.A.players.find((p) => p.id === socket.id) ||
+        teams.B.players.find((p) => p.id === socket.id);
+
       if (myTeamPlayer?.isLeader) {
         setIsLeader(true);
       }
 
-      if (updatedTeams.A.players.find((p) => p.id === socket.id)) {
+      if (teams.A.players.find((p) => p.id === socket.id)) {
         setMyTeam("A");
-      } else if (updatedTeams.B.players.find((p) => p.id === socket.id)) {
+      } else if (teams.B.players.find((p) => p.id === socket.id)) {
         setMyTeam("B");
       }
     });
 
-    socket.on("gameStarted", () => {
+    socket.on("gameStarted", ({ turn, round, teams }) => {
       setGameStarted(true);
+      setTeams(teams);
     });
 
     return () => {
       socket.off("roomCreated");
       socket.off("playerJoined");
-      socket.off("updateTeams");
+      socket.off("roomState");
       socket.off("gameStarted");
     };
   }, []);
@@ -67,7 +70,7 @@ export default function App() {
   };
 
   const joinTeam = (team) => {
-    socket.emit("joinTeam", { roomId: room, team, player: { name } });
+    socket.emit("joinTeam", { roomId: room, team });
   };
 
   const startGame = () => {

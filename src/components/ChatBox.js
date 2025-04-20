@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import socket from "../utils/socketClient";
 
-export default function ChatBox({ room }) {
+export default function ChatBox({ room, name }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
   useEffect(() => {
-    socket.on("receive-message", (msg) => {
-      setMessages((prev) => [...prev, msg]);
+    socket.on("receive-message", ({ sender, message }) => {
+      setMessages((prev) => [...prev, { sender, message }]);
     });
 
     return () => {
@@ -17,7 +17,7 @@ export default function ChatBox({ room }) {
 
   const sendMessage = () => {
     if (input.trim()) {
-      socket.emit("send-message", { room, message: input });
+      socket.emit("send-message", { roomId: room, message: input, sender: name });
       setInput("");
     }
   };
@@ -27,7 +27,9 @@ export default function ChatBox({ room }) {
       <h4>💬 Team Chat</h4>
       <div style={{ maxHeight: "150px", overflowY: "auto", background: "#222", padding: "0.5rem" }}>
         {messages.map((msg, i) => (
-          <div key={i} style={{ margin: "0.25rem 0" }}>🗨️ {msg}</div>
+          <div key={i} style={{ margin: "0.25rem 0" }}>
+            <strong>{msg.sender}:</strong> {msg.message}
+          </div>
         ))}
       </div>
       <input

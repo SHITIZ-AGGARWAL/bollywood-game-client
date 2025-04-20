@@ -14,8 +14,13 @@ export default function TeamModal({
 
   return (
     <div style={modalStyle}>
-      <h2>Choose Your Team</h2>
+      <h2>🎮 Choose Your Team</h2>
+      <p style={{ marginBottom: "1rem" }}>
+        Room Code: <strong>{currentRoom}</strong>
+      </p>
+
       <div style={{ display: "flex", justifyContent: "space-around", gap: "2rem" }}>
+        {/* Team A Section */}
         <div>
           <h3>Team A</h3>
           {teams.A.players.length === 0 && <div>No players</div>}
@@ -40,6 +45,7 @@ export default function TeamModal({
           </button>
         </div>
 
+        {/* Team B Section */}
         <div>
           <h3>Team B</h3>
           {teams.B.players.length === 0 && <div>No players</div>}
@@ -66,9 +72,8 @@ export default function TeamModal({
       </div>
 
       <div style={{ marginTop: "2rem", textAlign: "center" }}>
-        <p>Room Code: <strong>{currentRoom}</strong></p>
         <p>Current Team: <strong>{myTeam || "Not in any team"}</strong></p>
-        {isReadyToStart && isLeader && (
+        {isReadyToStart && isLeader ? (
           <button
             onClick={onStartGame}
             style={{
@@ -83,8 +88,7 @@ export default function TeamModal({
           >
             🚀 Start Game
           </button>
-        )}
-        {!isReadyToStart && (
+        ) : (
           <p style={{ color: "orange", marginTop: "1rem" }}>
             Both teams need at least one player to start the game.
           </p>

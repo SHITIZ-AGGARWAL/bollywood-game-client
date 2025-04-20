@@ -3,6 +3,7 @@ import socket from "../utils/socketClient";
 import BollywoodStrikeBoard from "./BollywoodStrikeBoard";
 import Scoreboard from "./Scoreboard";
 import ChatBox from "./ChatBox";
+import TeamPanel from "./TeamPanel";
 
 export default function Game({ room, name }) {
   const [myId, setMyId] = useState(null);
@@ -10,7 +11,7 @@ export default function Game({ room, name }) {
   const [maskedMovie, setMaskedMovie] = useState("");
   const [strikes, setStrikes] = useState(0);
   const [currentTurn, setCurrentTurn] = useState("A");
-  const [gameState, setGameState] = useState("waiting"); // waiting, submitting, guessing, watching
+  const [gameState, setGameState] = useState("waiting");
   const [letter, setLetter] = useState("");
   const [score, setScore] = useState({ A: 0, B: 0 });
   const [round, setRound] = useState(1);
@@ -19,14 +20,17 @@ export default function Game({ room, name }) {
   useEffect(() => {
     socket.on("connect", () => setMyId(socket.id));
 
-    socket.on("updateTeams", (updated) => setTeams(updated));
+    socket.on("roomState", ({ teams }) => {
+      setTeams(teams);
+    });
 
-    socket.on("gameStarted", () => {
+    socket.on("gameStarted", ({ turn, round, teams }) => {
       setGameState("submitting");
-      setCurrentTurn("A");
+      setCurrentTurn(turn);
       setStrikes(0);
       setMaskedMovie("");
-      setRound(1);
+      setRound(round);
+      setTeams(teams);
     });
 
     socket.on("movieReady", (masked) => {
@@ -35,13 +39,8 @@ export default function Game({ room, name }) {
       setStrikes(0);
     });
 
-    socket.on("correctGuess", (updatedMask) => {
-      setMaskedMovie(updatedMask);
-    });
-
-    socket.on("wrongGuess", (strikeCount) => {
-      setStrikes(strikeCount);
-    });
+    socket.on("correctGuess", (updatedMask) => setMaskedMovie(updatedMask));
+    socket.on("wrongGuess", (strikeCount) => setStrikes(strikeCount));
 
     socket.on("roundResult", ({ score }) => {
       setScore({
@@ -68,7 +67,7 @@ export default function Game({ room, name }) {
 
     return () => {
       socket.off("connect");
-      socket.off("updateTeams");
+      socket.off("roomState");
       socket.off("gameStarted");
       socket.off("movieReady");
       socket.off("correctGuess");
@@ -80,8 +79,8 @@ export default function Game({ room, name }) {
   }, []);
 
   const getTeam = () => {
-    if (teams.A.players.some(p => p.id === myId)) return "A";
-    if (teams.B.players.some(p => p.id === myId)) return "B";
+    if (teams?.A?.players?.some(p => p.id === myId)) return "A";
+    if (teams?.B?.players?.some(p => p.id === myId)) return "B";
     return null;
   };
 
@@ -109,6 +108,9 @@ export default function Game({ room, name }) {
       <h2>🎮 Round {round} — Team {currentTurn}'s Turn</h2>
       <p>You are in <strong>Team {myTeam}</strong> {isLeader && "(Leader)"}</p>
       <p>Room Code: <strong>{room}</strong></p>
+
+      {/* ✅ Player Names in TeamPanel */}
+      <TeamPanel teams={teams} currentTeam={currentTurn} />
       <Scoreboard teams={teams} />
 
       {/* Submitting Phase */}
@@ -131,7 +133,7 @@ export default function Game({ room, name }) {
       {gameState === "guessing" && (
         isGuessingTeam ? (
           <div>
-            <BollywoodStrikeBoard strikes={strikes} />
+            <BollywoodStrikeBoard strikesLeft={9 - strikes} />
             <div style={{ fontSize: "2rem", letterSpacing: "1rem", margin: "1rem 0" }}>{maskedMovie}</div>
             <input
               maxLength={1}
@@ -144,7 +146,7 @@ export default function Game({ room, name }) {
         ) : (
           <div>
             <p>The other team is guessing your movie...</p>
-            <BollywoodStrikeBoard strikes={strikes} />
+            <BollywoodStrikeBoard strikesLeft={9 - strikes} />
             <div style={{ fontSize: "2rem", letterSpacing: "1rem", margin: "1rem 0" }}>{maskedMovie}</div>
           </div>
         )
