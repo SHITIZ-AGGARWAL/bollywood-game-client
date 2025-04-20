@@ -1,12 +1,14 @@
 import React from "react";
 
-export default function TeamModal({ currentRoom, teams, currentPlayerId, onStartGame, onJoinTeam }) {
-  const myTeam = teams.A.players.find(p => p.id === currentPlayerId)
-    ? "A"
-    : teams.B.players.find(p => p.id === currentPlayerId)
-    ? "B"
-    : null;
-
+export default function TeamModal({
+  currentRoom,
+  teams,
+  currentPlayerId,
+  onStartGame,
+  onJoinTeam,
+  isLeader,
+  myTeam
+}) {
   const isReadyToStart =
     teams.A.players.length > 0 && teams.B.players.length > 0;
 
@@ -16,33 +18,76 @@ export default function TeamModal({ currentRoom, teams, currentPlayerId, onStart
       <div style={{ display: "flex", justifyContent: "space-around", gap: "2rem" }}>
         <div>
           <h3>Team A</h3>
+          {teams.A.players.length === 0 && <div>No players</div>}
           {teams.A.players.map((p, i) => (
             <div key={i}>
-              {p.id === currentPlayerId ? <b>{p.name || "You"}</b> : p.name || `Player ${i + 1}`}
+              {p.id === currentPlayerId ? <b>👤 {p.name} (You)</b> : `👤 ${p.name}`}
             </div>
           ))}
-          <button onClick={() => onJoinTeam("A")}>Join Team A</button>
+          <button
+            onClick={() => onJoinTeam("A")}
+            disabled={myTeam === "A"}
+            style={{
+              marginTop: "0.5rem",
+              backgroundColor: myTeam === "A" ? "#888" : "#28a745",
+              color: "#fff",
+              padding: "0.5rem 1rem",
+              border: "none",
+              borderRadius: "5px"
+            }}
+          >
+            {myTeam === "A" ? "Joined" : "Join Team A"}
+          </button>
         </div>
+
         <div>
           <h3>Team B</h3>
+          {teams.B.players.length === 0 && <div>No players</div>}
           {teams.B.players.map((p, i) => (
             <div key={i}>
-              {p.id === currentPlayerId ? <b>{p.name || "You"}</b> : p.name || `Player ${i + 1}`}
+              {p.id === currentPlayerId ? <b>👤 {p.name} (You)</b> : `👤 ${p.name}`}
             </div>
           ))}
-          <button onClick={() => onJoinTeam("B")}>Join Team B</button>
+          <button
+            onClick={() => onJoinTeam("B")}
+            disabled={myTeam === "B"}
+            style={{
+              marginTop: "0.5rem",
+              backgroundColor: myTeam === "B" ? "#888" : "#007bff",
+              color: "#fff",
+              padding: "0.5rem 1rem",
+              border: "none",
+              borderRadius: "5px"
+            }}
+          >
+            {myTeam === "B" ? "Joined" : "Join Team B"}
+          </button>
         </div>
       </div>
 
-      <div style={{ marginTop: "2rem" }}>
+      <div style={{ marginTop: "2rem", textAlign: "center" }}>
         <p>Room Code: <strong>{currentRoom}</strong></p>
-        <p>Current Team: <strong>{myTeam || "None"}</strong></p>
-        {isReadyToStart ? (
-          <button onClick={onStartGame} style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}>
+        <p>Current Team: <strong>{myTeam || "Not in any team"}</strong></p>
+        {isReadyToStart && isLeader && (
+          <button
+            onClick={onStartGame}
+            style={{
+              marginTop: "1rem",
+              padding: "0.6rem 1.5rem",
+              fontSize: "1rem",
+              background: "limegreen",
+              color: "#000",
+              border: "none",
+              borderRadius: "8px"
+            }}
+          >
             🚀 Start Game
           </button>
-        ) : (
-          <p style={{ color: "orange" }}>Both teams need at least 1 player to start</p>
+        )}
+        {!isReadyToStart && (
+          <p style={{ color: "orange", marginTop: "1rem" }}>
+            Both teams need at least one player to start the game.
+          </p>
         )}
       </div>
     </div>

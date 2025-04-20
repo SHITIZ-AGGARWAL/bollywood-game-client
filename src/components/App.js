@@ -12,6 +12,7 @@ export default function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [myId, setMyId] = useState(null);
   const [isLeader, setIsLeader] = useState(false);
+  const [myTeam, setMyTeam] = useState(null);
 
   useEffect(() => {
     setMyId(socket.id);
@@ -27,13 +28,17 @@ export default function App() {
 
     socket.on("updateTeams", (updatedTeams) => {
       setTeams(updatedTeams);
-
       const myTeamPlayer =
         updatedTeams.A.players.find((p) => p.id === socket.id) ||
         updatedTeams.B.players.find((p) => p.id === socket.id);
-
       if (myTeamPlayer?.isLeader) {
         setIsLeader(true);
+      }
+
+      if (updatedTeams.A.players.find((p) => p.id === socket.id)) {
+        setMyTeam("A");
+      } else if (updatedTeams.B.players.find((p) => p.id === socket.id)) {
+        setMyTeam("B");
       }
     });
 
@@ -112,9 +117,15 @@ export default function App() {
           onJoinTeam={joinTeam}
           onStartGame={startGame}
           isLeader={isLeader}
+          myTeam={myTeam}
         />
       ) : (
-        <Game room={room} name={name} />
+        <Game
+          room={room}
+          name={name}
+          myId={myId}
+          myTeam={myTeam}
+        />
       )}
     </div>
   );
