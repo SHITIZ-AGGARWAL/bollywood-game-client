@@ -1,1 +1,17 @@
-{"name":"bollywood-client","version":"1.0.0","dependencies":{"react":"^19.1.0","react-dom":"^19.1.0","react-scripts":"^5.0.1"}}
+{
+    "name": "bollywood-game-client",
+    "version": "1.0.0",
+    "dependencies": {
+      "react": "^18.0.0",
+      "react-dom": "^18.0.0",
+      "socket.io-client": "^4.5.0",
+      "react-confetti": "^6.1.0",
+      "howler": "^2.2.3",
+      "classnames": "^2.3.2"
+    },
+    "scripts": {
+      "start": "react-scripts start",
+      "build": "react-scripts build"
+    }
+  }
+  
