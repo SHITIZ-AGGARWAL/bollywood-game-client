@@ -8,7 +8,7 @@ import TeamPanel from "./TeamPanel";
 export default function Game({ room, name }) {
   const [myId, setMyId] = useState(null);
   const [teams, setTeams] = useState({ A: { players: [], leader: null }, B: { players: [], leader: null } });
-  const [myTeam, setMyTeam] = useState(null); // ✅ FIX 1: Manual myTeam tracking
+  const [myTeam, setMyTeam] = useState(null);
   const [maskedMovie, setMaskedMovie] = useState("");
   const [strikes, setStrikes] = useState(0);
   const [currentTurn, setCurrentTurn] = useState("A");
@@ -18,17 +18,25 @@ export default function Game({ room, name }) {
   const [round, setRound] = useState(1);
   const [revealedMovie, setRevealedMovie] = useState("");
 
+  // ✅ FIX: Track my team safely
+  const updateMyTeam = (teamsObj) => {
+    if (!myId) return;
+    if (teamsObj.A.players.some(p => p.id === myId)) setMyTeam("A");
+    else if (teamsObj.B.players.some(p => p.id === myId)) setMyTeam("B");
+    else setMyTeam(null);
+  };
+
   useEffect(() => {
-    socket.on("connect", () => setMyId(socket.id)); // ✅ FIX 2: Set myId on connect
+    socket.on("connect", () => setMyId(socket.id));
 
     socket.on("roomState", ({ teams }) => {
       setTeams(teams);
-      updateMyTeam(teams); // ✅ FIX 1.1
+      updateMyTeam(teams); // ✅ FIX
     });
 
     socket.on("updateTeams", (updatedTeams) => {
-      setTeams(updatedTeams);          // ✅ FIX 2A: show updated names
-      updateMyTeam(updatedTeams);      // ✅ FIX 2A: update my team if changed
+      setTeams(updatedTeams);
+      updateMyTeam(updatedTeams); // ✅ FIX
     });
 
     socket.on("gameStarted", ({ turn, round, teams }) => {
@@ -38,7 +46,7 @@ export default function Game({ room, name }) {
       setMaskedMovie("");
       setRound(round);
       setTeams(teams);
-      updateMyTeam(teams); // ✅ FIX 1.2
+      updateMyTeam(teams); // ✅ FIX
     });
 
     socket.on("movieReady", (masked) => {
@@ -73,11 +81,10 @@ export default function Game({ room, name }) {
       setGameState("submitting");
     });
 
-
     return () => {
       socket.off("connect");
       socket.off("roomState");
-      socket.off("updateTeams"); // ✅ CLEANUP
+      socket.off("updateTeams");
       socket.off("gameStarted");
       socket.off("movieReady");
       socket.off("correctGuess");
@@ -86,15 +93,7 @@ export default function Game({ room, name }) {
       socket.off("roundFailed");
       socket.off("roundStart");
     };
-  }, []);
-
-  // ✅ FIX 1.3: Track myTeam manually instead of getTeam()
-  const updateMyTeam = (teamsObj) => {
-    if (!myId) return;
-    if (teamsObj.A.players.some(p => p.id === myId)) setMyTeam("A");
-    else if (teamsObj.B.players.some(p => p.id === myId)) setMyTeam("B");
-    else setMyTeam(null);
-  };
+  }, [myId]);
 
   const isLeader = teams[myTeam]?.leader === myId;
   const isGuessingTeam = currentTurn !== myTeam;
@@ -114,7 +113,7 @@ export default function Game({ room, name }) {
     socket.emit("nextRound", { roomId: room });
   };
 
-  // ✅ FIX 3: Show loading until myId + myTeam is available
+  // ✅ FIX: Prevent rendering before ready
   if (!myId || !myTeam) {
     return <p style={{ color: "#fff", padding: "2rem" }}>Loading...</p>;
   }
