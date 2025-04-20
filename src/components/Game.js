@@ -73,6 +73,7 @@ export default function Game({ room, name }) {
       setGameState("submitting");
     });
 
+
     return () => {
       socket.off("connect");
       socket.off("roomState");
