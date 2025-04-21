@@ -1,0 +1,122 @@
+/* Scoreboard.css - Modern styling with animations */
+
+.scoreboard {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  animation: slideIn 0.5s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.score-title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(45deg, #4A90E2, #67B26F);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.scores-container {
+  display: flex;
+  justify-content: space-around;
+  gap: 2rem;
+}
+
+.team-score {
+  padding: 1.5rem;
+  border-radius: 15px;
+  min-width: 150px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.team-score::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+  transform: rotate(45deg);
+  animation: scoreShine 3s linear infinite;
+}
+
+@keyframes scoreShine {
+  0% { transform: rotate(45deg) translateX(-100%); }
+  100% { transform: rotate(45deg) translateX(100%); }
+}
+
+.team-score.winning {
+  background: linear-gradient(45deg, rgba(74, 144, 226, 0.2), rgba(103, 178, 111, 0.1));
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(74, 144, 226, 0.2);
+  border: 2px solid rgba(74, 144, 226, 0.3);
+}
+
+.team-score h3 {
+  font-size: 1.4rem;
+  margin-bottom: 0.8rem;
+  color: #4A90E2;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.score-value {
+  font-size: 3rem;
+  font-weight: bold;
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: scoreGlow 2s infinite;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.score-value::before {
+  content: '🏆';
+  font-size: 2rem;
+}
+
+@keyframes scoreGlow {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.2); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 480px) {
+  .scores-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .team-score {
+    min-width: auto;
+  }
+}

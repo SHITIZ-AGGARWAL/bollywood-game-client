@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import socket from "../utils/socketClient";
 import Game from "./Game";
 import TeamModal from "./TeamModal";
+import '../styles/global.css';
+import '../styles/Landing.css';
 
 export default function App() {
   const [room, setRoom] = useState("");
@@ -78,37 +80,32 @@ export default function App() {
   };
 
   return (
-    <div style={{ padding: "2rem", background: "#111", color: "#fff", minHeight: "100vh" }}>
+    <div className="landing-container">
       {!joined ? (
-        <div>
-          <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>🎬 Bollywood Game</h1>
+        <div className="landing-content">
+          <h1 className="landing-title">🎬 Bollywood Game</h1>
           <input
+            className="landing-input"
             placeholder="Your Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            style={{ margin: "0.5rem", padding: "0.5rem", width: "300px" }}
           />
-          <br /><br />
-          <button onClick={createRoom} style={{ marginRight: "1rem" }}>Create Room</button>
-          <button onClick={() => setShowJoinPopup(true)}>Join Room</button>
+          <div className="landing-buttons">
+            <button className="landing-button primary" onClick={createRoom}>Create Room</button>
+            <button className="landing-button secondary" onClick={() => setShowJoinPopup(true)}>Join Room</button>
+          </div>
 
           {showJoinPopup && (
-            <div style={{
-              background: "#222",
-              padding: "1rem",
-              marginTop: "1rem",
-              borderRadius: "8px",
-              maxWidth: "350px"
-            }}>
-              <h3>Enter Room Code</h3>
+            <div className="popup-modal">
+              <h2>Enter Room Code</h2>
               <input
+                className="landing-input"
                 placeholder="Room Code"
                 value={room}
                 onChange={(e) => setRoom(e.target.value.toUpperCase())}
-                style={{ margin: "0.5rem 0", padding: "0.5rem", width: "100%" }}
               />
-              <button onClick={joinRoom} style={{ marginRight: "1rem" }}>Join</button>
-              <button onClick={() => setShowJoinPopup(false)}>Cancel</button>
+              <button className="landing-button primary" onClick={joinRoom}>Join</button>
+              <button className="landing-button secondary" onClick={() => setShowJoinPopup(false)}>Cancel</button>
             </div>
           )}
         </div>
