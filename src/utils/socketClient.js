@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3001", {
+const socket = io("https://bollywood-game-server-5995.onrender.com", {
   transports: ["websocket"],
   reconnection: true,
   reconnectionAttempts: 5,
